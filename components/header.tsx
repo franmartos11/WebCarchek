@@ -55,7 +55,8 @@ export default function Nav({ page }: { page: string }) {
       o5: "Audit",
     },
     op3: "Nosotros",
-    op4: "Contacto",
+    op4: "Servicios",
+    op5: "Consultar Estado",
   };
 
   return (
@@ -99,15 +100,15 @@ export default function Nav({ page }: { page: string }) {
 
         {/* MENU */}
         <div className={`${isMenuOpen ? "block" : "hidden"} w-full md:block md:w-auto mt-4 md:mt-0`}>
-          <ul className="flex flex-col text-white font-medium rounded-lg md:space-x-8 md:flex-row md:border-0 md:bg-transparent">
+          <ul className="flex flex-col text-white font-medium rounded-lg md:space-x-8 md:flex-row md:border-0 md:bg-transparent ">
 
             {/* INICIO */}
             <li>
               <Link
                 href="/"
                 onClick={toggleMenu}
-                className={`block py-2 px-3 md:p-0 rounded md:hover:text-blue-700 ${
-                  page === "home" ? "text-blue-700" : "text-white"
+                className={`block py-2 px-3 md:p-0 rounded md:hover:text-white ${
+                  page === "home" ? "text-blue-700" : "text-gray-200"
                 }`}
               >
                 {texts.op1}
@@ -117,26 +118,38 @@ export default function Nav({ page }: { page: string }) {
             {/* NOSOTROS */}
             <li>
               <Link
-                href="/nosotros"
+                href="#nosotros"
                 onClick={toggleMenu}
-                className={`block py-2 px-3 md:p-0 md:hover:text-blue-700 ${
-                  page === "nosotros" ? "text-blue-700" : "text-white"
+                className={`block py-2 px-3 md:p-0 md:hover:text-white ${
+                  page === "nosotros" ? "text-blue-700" : "text-gray-200"
                 }`}
               >
                 {texts.op3}
               </Link>
             </li>
 
-            {/* CONTACTO */}
+            {/* servicios */}
             <li>
               <Link
-                href="/contact"
+                href="#servicios"
                 onClick={toggleMenu}
-                className={`block py-2 px-3 md:p-0 md:hover:text-blue-700 ${
-                  page === "contacto" ? "text-blue-700" : "text-white"
+                className={`block py-2 px-3 md:p-0 md:hover:text-white ${
+                  page === "contacto" ? "text-blue-700" : "text-gray-200"
                 }`}
               >
                 {texts.op4}
+              </Link>
+            </li>
+             {/* servicios */}
+             <li>
+              <Link
+                href="#consultar"
+                onClick={toggleMenu}
+                className={`block py-2 px-3 md:p-0 md:hover:text-white ${
+                  page === "contacto" ? "text-blue-700" : "text-gray-200"
+                }`}
+              >
+                {texts.op5}
               </Link>
             </li>
 
