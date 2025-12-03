@@ -1,4 +1,5 @@
 import { About } from "@/components/about";
+import { Appointment } from "@/components/appointment";
 import { Footer } from "@/components/footer";
 import Nav from "@/components/header";
 import { Hero } from "@/components/hero";
@@ -12,6 +13,7 @@ export default function Home() {
       <Nav page={""} />
       <Hero />
       <VehicleStatus />
+      <Appointment />
       <Services />
       <About />
       <Footer />

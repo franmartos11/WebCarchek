@@ -22,6 +22,14 @@ interface ClienteData {
   [key: string]: string | undefined
 }
 
+interface AppointmentData {
+  nombre: string
+  telefono: string
+  patente: string
+  fecha: string
+  horario: string
+}
+
 
 async function searchCliente(clienteId: string, apiKey: string): Promise<string> {
   try {
@@ -187,3 +195,60 @@ export async function searchVehicle(patente: string): Promise<{
     }
   }
 }
+
+export async function scheduleAppointment(
+  appointmentData: AppointmentData,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const API_KEY = process.env.APPSHEET_API_KEY
+
+    if (!API_KEY) {
+      return {
+        success: false,
+        error: "Configuración de API incompleta.",
+      }
+    }
+
+    const APP_ID = "b50db9bd-7641-4568-a01f-6d3d2c02a59e"
+    const TABLE_NAME = "CITAS" // Asume que tienes una tabla de citas
+    const API_URL = `https://api.appsheet.com/api/v2/apps/${APP_ID}/tables/${TABLE_NAME}/Action`
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ApplicationAccessKey: API_KEY,
+      },
+      body: JSON.stringify({
+        Action: "Add",
+        Properties: {
+          Locale: "es-ES",
+        },
+        Rows: [
+          {
+            NOMBRE: appointmentData.nombre,
+            TELEFONO: appointmentData.telefono,
+            PATENTE: appointmentData.patente,
+            FECHA: appointmentData.fecha,
+            HORARIO: appointmentData.horario,
+            ESTADO: "PENDIENTE",
+          },
+        ],
+      }),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`Error ${response.status}: ${errorText}`)
+    }
+
+    return { success: true }
+  } catch (err) {
+    console.error("[v0] Error al agendar cita:", err)
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Error al agendar la cita. Por favor intenta nuevamente.",
+    }
+  }
+}
+
