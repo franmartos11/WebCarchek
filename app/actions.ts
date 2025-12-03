@@ -22,6 +22,7 @@ interface ClienteData {
   [key: string]: string | undefined
 }
 
+
 async function searchCliente(clienteId: string, apiKey: string): Promise<string> {
   try {
     const APP_ID = "b50db9bd-7641-4568-a01f-6d3d2c02a59e"
@@ -43,30 +44,61 @@ async function searchCliente(clienteId: string, apiKey: string): Promise<string>
       }),
     })
 
-    if (!response.ok) {
-      return clienteId // Si falla, retorna el ID
-    }
+    if (!response.ok) return clienteId
 
     const data: ClienteData[] = await response.json()
 
-    if (data && data.length > 0) {
+    if (data?.length > 0) {
       const cliente = data[0]
-      if (cliente.NOMBRE && cliente.APELLIDO) {
-        return `${cliente.NOMBRE} ${cliente.APELLIDO}`
-      } else if (cliente.NOMBRE) {
-        return cliente.NOMBRE
-      }
+      if (cliente.NOMBRE && cliente.APELLIDO) return `${cliente.NOMBRE} ${cliente.APELLIDO}`
+      if (cliente.NOMBRE) return cliente.NOMBRE
     }
 
     return clienteId
-  } catch (err) {
+  } catch {
     return clienteId
   }
 }
 
+
+async function searchSeguro(seguroId: string, apiKey: string): Promise<string> {
+  try {
+    const APP_ID = "b50db9bd-7641-4568-a01f-6d3d2c02a59e"
+    const TABLE_NAME = "ASEGURADORA"
+    const API_URL = `https://api.appsheet.com/api/v2/apps/${APP_ID}/tables/${TABLE_NAME}/Action`
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ApplicationAccessKey: apiKey,
+      },
+      body: JSON.stringify({
+        Action: "Find",
+        Properties: {},
+        Rows: [{ ID: seguroId }]
+      }),
+    })
+
+    if (!response.ok) return seguroId
+
+    const data = await response.json()
+
+    if (data && data.length > 0 && data[0].NOMBRE) {
+      return data[0].NOMBRE
+    }
+
+    return seguroId
+  } catch {
+    return seguroId
+  }
+}
+
+
+
 export async function searchVehicle(patente: string): Promise<{
   success: boolean
-  data?: VehicleData & { clienteNombre?: string }
+  data?: VehicleData & { clienteNombre?: string; seguroNombre?: string }
   error?: string
 }> {
   try {
@@ -74,8 +106,13 @@ export async function searchVehicle(patente: string): Promise<{
       return { success: false, error: "Por favor ingresa una patente" }
     }
 
-    const API_KEY = process.env.APPSHEET_API_KEY
+    // 🔥 NORMALIZAR PATENTE (espacios, guiones, mayúsculas)
+    const patenteNormalizada = patente
+      .toUpperCase()
+      .replace(/\s+/g, "")
+      .replace(/-/g, "");
 
+    const API_KEY = process.env.APPSHEET_API_KEY
     if (!API_KEY) {
       return {
         success: false,
@@ -97,7 +134,15 @@ export async function searchVehicle(patente: string): Promise<{
         Action: "Find",
         Properties: {
           Locale: "es-ES",
-          Selector: `Filter(ALISTAJE, [VEHICULO ASOCIADO] = "${patente.toUpperCase()}")`,
+
+          // 🔍 NORMALIZAR TAMBIÉN LO QUE ESTÁ EN APPSHEET
+          Selector: `Filter(
+            ALISTAJE,
+            SUBSTITUTE(
+              SUBSTITUTE([VEHICULO ASOCIADO], " ", ""),
+            "-", ""
+            ) = "${patenteNormalizada}"
+          )`,
         },
       }),
     })
@@ -112,9 +157,16 @@ export async function searchVehicle(patente: string): Promise<{
     if (data && data.length > 0) {
       const vehicleData = data[0]
 
+      // 🔍 Buscar CLIENTE
       let clienteNombre = vehicleData["CLIENTE ASOCIADO"]
       if (clienteNombre) {
         clienteNombre = await searchCliente(clienteNombre, API_KEY)
+      }
+
+      // 🔍 Buscar ASEGURADORA
+      let seguroNombre = vehicleData["SEGURO"]
+      if (seguroNombre) {
+        seguroNombre = await searchSeguro(seguroNombre, API_KEY)
       }
 
       return {
@@ -122,15 +174,16 @@ export async function searchVehicle(patente: string): Promise<{
         data: {
           ...vehicleData,
           clienteNombre,
+          seguroNombre,
         },
       }
-    } else {
-      return { success: false, error: "No se encontró ningún vehículo con esa patente" }
     }
+
+    return { success: false, error: "No se encontró ningún vehículo con esa patente" }
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Error al buscar el vehículo. Verifica la configuración de la API.",
+      error: err instanceof Error ? err.message : "Error al buscar el vehículo.",
     }
   }
 }

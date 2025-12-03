@@ -14,7 +14,6 @@ export default function Home() {
       <VehicleStatus />
       <Services />
       <About />
-      
       <Footer />
     </main>
   );
