@@ -135,7 +135,7 @@ export async function searchVehicle(patente: string): Promise<{
         Properties: {
           Locale: "es-ES",
 
-          // 🔍 NORMALIZAR TAMBIÉN LO QUE ESTÁ EN APPSHEET
+          // 🔍 NORMALIZAR LO QUE ESTÁ EN APPSHEET
           Selector: `Filter(
             ALISTAJE,
             SUBSTITUTE(
